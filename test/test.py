@@ -1,8 +1,13 @@
 import re
 import sys 
+
 import nltk
 from nltk.tokenize import word_tokenize
+import string 
+from textblob.classifiers import NaiveBayesClassifier
 
+reload(sys) 
+sys.setdefaultencoding('ISO-8859-1')
 positiveData = '../data/twssstories.txt'
 negativeData1 = '../data/wikiquotes.txt'
 negativeData2 = '../data/fml.txt'
@@ -34,31 +39,54 @@ def getTraining(text):
 def tagPos(text, feature):
 	data = []
 	for t in text:
-		tup = (); 
+		tup = () 
+		t = t.replace("'", "")
+		t = ' '.join(word.strip(string.punctuation) for word in t.split()) 
 		tup = (t, feature)
+		#data[t] = feature
 		data.append(tup)
 	return data
 
+
+# combine pos neg data
 
 # get positive training data 
 txt = readFile(positiveData)
 txt = getTraining(txt) 
 txt = tagPos(txt, "pos")
-
 # get negative training data 
-negText = readFile(negativeData) 
-negText = getTraining(negText)
-negText = tagPos(negText, "neg")
+negText = readFile(negativeData1)# + negativeData2 + negativeData3) 
+negText1 = readFile(negativeData2)
+negText2 = readFile(negativeData3)
+print len(negText)
+print len(negText1)
+print len(negText2)
 
+negText = getTraining(negText)
+negText1 = getTraining(negText1)
+negText2 = getTraining(negText2)
+
+taggedNeg = tagPos(negText + negText1 + negText2, "neg")
+
+print len(negText)
+print len(negText1)
+print len(negText2)
+print len(taggedNeg)
+
+#pos_neg_text = {} 
+#pos_neg_text.update(txt)
+#pos_neg_text.update(taggedNeg)
+pos_neg_text = taggedNeg + txt
+print len(pos_neg_text)
 # write results to a doc
 f = open('parsedData.txt', 'w')
-f.write('\n'.join(str(v) for v in txt))
+f.write('\n'.join(str(v) for v in pos_neg_text))
 f.close()
 
-print txt[0] 
 # after getting the tagged and parsed data, 
 # iterate through each line in the resulting txt file and 
 # feed to the classifer. 
+cl = NaiveBayesClassifier(pos_neg_text)
 
 
 
