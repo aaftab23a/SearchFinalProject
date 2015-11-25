@@ -1,10 +1,12 @@
 import re
 import sys 
-
+import pickle  
 import nltk
 from nltk.tokenize import word_tokenize
 import string 
+# don't actually need this anymore
 from textblob.classifiers import NaiveBayesClassifier
+
 
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
@@ -36,6 +38,7 @@ def getTraining(text):
 # this tag will allow us to train the classifier on positive & negative datasets
 # eg. ("Put it back in, it's still moist in the middle.", 'pos')
 # returns a tuple containing a "string" and a 'tag'
+# change name - not necessarily positive
 def tagPos(text, feature):
 	data = []
 	for t in text:
@@ -49,63 +52,48 @@ def tagPos(text, feature):
 
 
 # combine pos neg data
-
-# get positive training data 
-txt = readFile(positiveData)
-txt = getTraining(txt) 
-txt = tagPos(txt, "pos")
-# get negative training data 
-negText = readFile(negativeData1)# + negativeData2 + negativeData3) 
-negText1 = readFile(negativeData2)
-negText2 = readFile(negativeData3)
-print len(negText)
-print len(negText1)
-print len(negText2)
-
-negText = getTraining(negText)
-negText1 = getTraining(negText1)
-negText2 = getTraining(negText2)
-
-taggedNeg = tagPos(negText + negText1 + negText2, "neg")
-
-print len(negText)
-print len(negText1)
-print len(negText2)
-print len(taggedNeg)
-
-#pos_neg_text = {} 
-#pos_neg_text.update(txt)
-#pos_neg_text.update(taggedNeg)
-pos_neg_text = taggedNeg + txt
-print len(pos_neg_text)
-# write results to a doc
-f = open('parsedData.txt', 'w')
-f.write('\n'.join(str(v) for v in pos_neg_text))
-f.close()
+def loadData(file, tag):
+	txt = readFile(file)
+	txt = getTraining(txt)
+	txt = tagPos(txt, tag) 
+	return txt
 
 # after getting the tagged and parsed data, 
 # iterate through each line in the resulting txt file and 
 # feed to the classifer. 
-cl = NaiveBayesClassifier(pos_neg_text)
+def train(training_data):
+	training_feature_set = [(extract_features(line), label) for (line, label) in training_data]
+	#cl = NaiveBayesClassifier(pos_neg_text)
+	classifier = nltk.NaiveBayesClassifier.train(training_feature_set)
+	return classifier
 
+# we're currently training the classifier on unigrams 
+def extract_features(phrase):
+	words = nltk.word_tokenize(phrase)
+	features = {}
+	for word in words: 
+		features['contains(%s)' % word] = (word in words)
+	return features
 
+def save(data, filename ='classifier.dump'): 
+	ofile = open(filename, 'w+')
+	pickle.dump(data, ofile)
+	ofile.close()
 
-# # Sklearn 
-# classifier = MultinomialNB()
-# # count vectorizer supports counds of n-grams of words or conseq. chars
-# # the index of a word in the vocab is linked to its frequency in the whole training corpus
-# count_vect = CountVectorizer()
-# trainCounts = count_vect.fit_transform(data)
-# tfidf_Transformer = TfidfTransformer() 
+# load data, parse and tag
+trainingData = loadData(positiveData, "pos")
+trainingData += loadData(negativeData1, "neg")
+trainingData += loadData(negativeData2, "neg")
+trainingData += loadData(negativeData3, "neg")
 
-# y_pred = NB.fit()
-# cleanText = re.compile("[^\w]")
-# cleanText = cleanText.sub(' ', text)
+# write results to a doc (for debugging)
+f = open('parsedData.txt', 'w')
+f.write('\n'.join(str(v) for v in trainingData))
+f.close()
 
-# train = cleanText.split()
-
-# classifier = nltk.classify.NaiveBayesClassifier.train(train)
-
+# train and save data 
+data = train(trainingData)
+save(data)
 
 # # some docs are longer than others, 
 # # use tf_idf to downscale the weights of teh words that occur in many docs 
