@@ -4,7 +4,7 @@ import pickle
 import nltk, nltk.classify.util, nltk.metrics
 import collections
 import string 
-
+from nltk.stem.porter import *
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.util import ngrams
@@ -13,7 +13,10 @@ from random import shuffle
 # don't actually need this anymore
 from textblob.classifiers import NaiveBayesClassifier
 
-
+# 1521 Positive training 
+# 13379 Negative Training 
+# 507 Positive Testing 
+# 4460 Negative Testing 
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
 positiveData = '../data/twssstories.txt'
@@ -29,11 +32,14 @@ def readFile(path):
 	return text.split('\n')
 
 def cleanData(line):
+	stemmer = PorterStemmer()
 	no_stop = []
 	for word in line.split():
-		if word not in stopwords.words('english'):
-			no_stop.append(word.lower())
+		no_stop.append(stemmer.stem(word.lower()))
+	#	if word not in stopwords.words('english'):
+	#		no_stop.append(stemmer.stem(word.lower()))
 	remove_punct = ' '.join(word.strip(string.punctuation) for word in no_stop) 
+	#stemmed = [stemmer.stem(p) for p in remove_punct]
 	return remove_punct
 
 # take in a some array of strings (each index has a sentence)
@@ -56,6 +62,7 @@ def getTesting(text):
 # returns a tuple containing a "string" and a 'tag'
 # change name - not necessarily positive
 def tag_sentence(text, feature):
+	
 	data = []
 	for t in text:
 		tup = () 
@@ -86,7 +93,6 @@ def train(training_data):
 def extract_features(phrase):
 	words = nltk.word_tokenize(phrase)
 	features = {}
-	new_features = {}
 	for word in words:
 		features['contains(%s)' % word] = (word in words)
 	return features
@@ -119,9 +125,9 @@ def getShuffledData(txt, tag):
 
 def getData():
 	pos_data = readFile(positiveData)
-	neg_data_1 = readFile(negativeData1)
-	neg_data_2 = readFile(negativeData2)
-	neg_data_3 = readFile(negativeData3)
+	neg_data_1 = readFile(negativeData1) # 97%
+	neg_data_2 = readFile(negativeData2) # 83%
+	neg_data_3 = readFile(negativeData3) # tflonesent 95.9% 
 	neg_data = neg_data_1 + neg_data_2 + neg_data_3
 	return (pos_data, neg_data)
 
@@ -134,33 +140,54 @@ def save_to_file(text, filename):
 all_data = getData()
 pos_data = getShuffledData(all_data[0], "pos")
 neg_data = getShuffledData(all_data[1], "neg")
-
+# train on just one negative dataset - test with the remaining 1/4th of the data set + all others
+# 94.88 (negative 1)
+# 94.1 (neg 2)
+# 93 (neg 3)
+# neg1[0] -> training; neg1[1] -> testing
 shuffled_training_data = pos_data[0] + neg_data[0] 
 shuffled_testing_data = pos_data[1] + neg_data[1]
 
-save_to_file(shuffled_training_data, 'training_data.txt')
-save_to_file(shuffled_testing_data, 'testing_data.txt')
 
+#save_to_file(shuffled_training_data, 'training_data.txt')
+#save_to_file(shuffled_testing_data, 'testing_data.txt')
 # train and save data - training data takes a while 
-#data = train(shuffled_testing_data)
-#save(data)
+data = train(shuffled_testing_data)
+save(data)
 classifier = load_classifier()
-
+# 	First test: 
+#	95% accuracy
+# Note: precision changes??? everytime I run the classifier, but I'm not retraining the classifier... weird
+# precision = 264/283 -> 93% precision | 96.8%? (second test) | 94% (third test)
+# recall 276/507 -> 54%
 errors = [] 
+true_pos = 0
+all_retrieved = 0
+all_pos = 0
 for (prompt, tag) in shuffled_testing_data:
 	guess = classifier.classify(extract_features(prompt))
-	if guess != tag:
-		errors.append((tag, guess, prompt))
+	if (guess == tag) and (guess == "pos"):
+		true_pos = true_pos + 1
+	if guess == "pos":
+		all_retrieved = all_retrieved + 1
+	if tag == "pos":
+		all_pos = all_pos + 1
+	# TP - if guess is pos & tag is pos 
+	# if guess is pos 
+	#if guess != tag:
+	#	errors.append((tag, guess, prompt))
 
-for (tag, guess, name) in sorted(errors):
-	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
+#for (tag, guess, name) in sorted(errors):
+#	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
 
 # tests classifier, prints out the accuracy 
 print test_classifier(classifier, shuffled_testing_data)
 # prints out the most informative features (which words had the biggest impact)
 print classifier.show_most_informative_features()
 
-
+print 'True Positive: ', true_pos
+print 'All Retrieved: ', all_retrieved
+print 'All Positive: ', all_pos
 # refsets = collections.defaultdict(set)
 # testsets = collections.defaultdict(set)
  
@@ -183,13 +210,4 @@ print classifier.show_most_informative_features()
 #f = open('parsedData.txt', 'w')
 #f.write('\n'.join(str(v) for v in trainingData))
 #f.close()
-
-# def getData(training_or_testing):
-# 	data = load_data(negativeData1, "neg", training_or_testing)
-# 	data += load_data(negativeData2, "neg", training_or_testing)
-# 	data += load_data(negativeData3, "neg", training_or_testing)
-# 	print 'negative data: ', len(data), ' ', training_or_testing
-# 	data += load_data(positiveData, "pos", training_or_testing)
-# 	print 'positive data: ', len(data), ' ', training_or_testing
-# 	return data
 
