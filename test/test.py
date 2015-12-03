@@ -10,8 +10,6 @@ from nltk.corpus import stopwords
 from nltk.util import ngrams
 from random import shuffle
 
-# don't actually need this anymore
-from textblob.classifiers import NaiveBayesClassifier
 
 # 1521 Positive training 
 # 13379 Negative Training 
@@ -23,6 +21,12 @@ positiveData = '../data/twssstories.txt'
 negativeData1 = '../data/wikiquotes.txt'
 negativeData2 = '../data/fml.txt'
 negativeData3 = '../data/tflnonesent.txt'
+
+# for cross-validation
+chunk_TrainingSet = []
+chunk_TestingSet  = []
+
+
 
 
 def readFile(path): 
@@ -123,6 +127,7 @@ def getShuffledData(txt, tag):
 	testing_data = tag_sentence(testing_data, tag)
 	return (training_data, testing_data)
 
+
 def getData():
 	pos_data = readFile(positiveData)
 	neg_data_1 = readFile(negativeData1) # 97%
@@ -130,6 +135,53 @@ def getData():
 	neg_data_3 = readFile(negativeData3) # tflonesent 95.9% 
 	neg_data = neg_data_1 + neg_data_2 + neg_data_3
 	return (pos_data, neg_data)
+
+# 1521 Positive training 
+# 13379 Negative Training 
+# 507 Positive Testing 
+# 4460 Negative Testing 
+
+def chunkifyData (text,chunks_list,text_length,chunk_length):
+	for i in range(0,text_length,chunk_length):
+		chunks_list.append(text[i:i+chunk_length])
+	return chunks_list
+
+def getChunkifiedData():
+	pos_chunks = []
+	neg_chunks = []
+	
+	pos_sizerange = 1521/4
+	neg_sizerange = 13379/4
+
+	pos_data = readFile(positiveData)
+	neg_data_1 = readFile(negativeData1) 
+	neg_data_2 = readFile(negativeData2) 
+	neg_data_3 = readFile(negativeData3) 
+	neg_data = neg_data_1 + neg_data_2 + neg_data_3
+
+	pos_step = pos_sizerange%1521
+	neg_step = neg_sizerange%13379
+
+	pos_data = tag_sentence(pos_data,"pos")
+	neg_data = tag_sentence(neg_data,"neg")
+
+
+	chunkifyData(pos_data, pos_chunks, 1521, pos_step)
+	chunkifyData(neg_data, neg_chunks, 13379, neg_step)
+
+	shuffle(pos_chunks)
+	shuffle(neg_chunks)
+
+#after every shuffle the first index has a different piece of the text, so we test on the other 4 indeces
+	chunk_TrainingSet.extend(pos_chunks[0] + neg_chunks[0] )
+	chunk_TestingSet.extend(pos_chunks[0]  + neg_chunks[0] + pos_chunks[1] + neg_chunks[1] + pos_chunks[2] + neg_chunks[2] + pos_chunks[3] + neg_chunks[3] + pos_chunks[4] + neg_chunks[4])
+
+	return (chunk_TrainingSet, chunk_TestingSet)
+
+# def cross_validate(testing_chunk,):
+# 	getChunkifiedData()
+
+# 	test_classifier(classifier, shuffled_testing_data)
 
 def save_to_file(text, filename):
 	f = open(filename, 'w')
@@ -149,10 +201,14 @@ shuffled_training_data = pos_data[0] + neg_data[0]
 shuffled_testing_data = pos_data[1] + neg_data[1]
 
 
+getChunkifiedData()
+
 #save_to_file(shuffled_training_data, 'training_data.txt')
 #save_to_file(shuffled_testing_data, 'testing_data.txt')
 # train and save data - training data takes a while 
-data = train(shuffled_testing_data)
+data = train(chunk_TrainingSet)
+
+# data = train(chunk_TrainingSet)
 save(data)
 classifier = load_classifier()
 # 	First test: 
@@ -164,7 +220,7 @@ errors = []
 true_pos = 0
 all_retrieved = 0
 all_pos = 0
-for (prompt, tag) in shuffled_testing_data:
+for (prompt, tag) in chunk_TestingSet:
 	guess = classifier.classify(extract_features(prompt))
 	if (guess == tag) and (guess == "pos"):
 		true_pos = true_pos + 1
@@ -185,9 +241,10 @@ print test_classifier(classifier, shuffled_testing_data)
 # prints out the most informative features (which words had the biggest impact)
 print classifier.show_most_informative_features()
 
-print 'True Positive: ', true_pos
-print 'All Retrieved: ', all_retrieved
-print 'All Positive: ', all_pos
+print 'True Positives: ', true_pos
+print 'All Retrieved pos/neg: ', all_retrieved
+print 'All real Positive: ', all_pos
+
 # refsets = collections.defaultdict(set)
 # testsets = collections.defaultdict(set)
  
