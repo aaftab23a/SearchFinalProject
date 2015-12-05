@@ -1,3 +1,4 @@
+from __future__ import division
 import re
 import sys 
 import pickle  
@@ -9,7 +10,6 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.util import ngrams
 from random import shuffle
-
 
 # 1521 Positive training 
 # 13379 Negative Training 
@@ -25,7 +25,7 @@ negativeData3 = '../data/tflnonesent.txt'
 # for cross-validation
 chunk_TrainingSet = []
 chunk_TestingSet  = []
-
+stopwords = [] 
 
 
 
@@ -35,11 +35,21 @@ def readFile(path):
 	f.close()
 	return text.split('\n')
 
+def read(path): 
+	f = open(path, 'r')
+	text = f.read()
+	f.close()
+	return text
+
 def cleanData(line):
 	stemmer = PorterStemmer()
 	no_stop = []
 	for word in line.split():
-		no_stop.append(stemmer.stem(word.lower()))
+#		no_stop.append(str(word.lower()))
+	#	no_stop.append(str(stemmer.stem(word.lower())))
+		if word not in stopwords:
+			no_stop.append(str(word.lower()))
+	#		no_stop.append(str(stemmer.stem(word.lower())))
 	#	if word not in stopwords.words('english'):
 	#		no_stop.append(stemmer.stem(word.lower()))
 	remove_punct = ' '.join(word.strip(string.punctuation) for word in no_stop) 
@@ -66,7 +76,6 @@ def getTesting(text):
 # returns a tuple containing a "string" and a 'tag'
 # change name - not necessarily positive
 def tag_sentence(text, feature):
-	
 	data = []
 	for t in text:
 		tup = () 
@@ -75,6 +84,7 @@ def tag_sentence(text, feature):
 		tup = (t, feature)
 		data.append(tup)
 	return data
+
 # combine pos neg data
 def load_data(file, tag, training_or_testing):
 	txt = readFile(file)
@@ -101,7 +111,7 @@ def extract_features(phrase):
 		features['contains(%s)' % word] = (word in words)
 	return features
 
-def save(data, filename ='classifier.dump'): 
+def save_classifier(data, filename ='classifier.dump'): 
 	ofile = open(filename, 'w+')
 	pickle.dump(data, ofile)
 	ofile.close()
@@ -116,9 +126,19 @@ def load_classifier(filename = 'classifier.dump'):
 	ifile.close()
 	return classifier
 
+def save(data, filename):
+	ofile = open(filename, "w+")
+	pickle.dump(data, ofile)
+	ofile.close()
+
+
+def load(filename):
+	ifile = open(filename, 'r+')
+	data = pickle.load(ifile)
+	ifile.close()
+	return data
 # takes in some text, shuffles, splits into pos and neg
-def getShuffledData(txt, tag):
-	shuffle(txt)
+def get_tagged(txt, tag):
 	length = len(txt)
 	numLines = float(length*3)/4
 	training_data = txt[:int(numLines)]
@@ -130,11 +150,28 @@ def getShuffledData(txt, tag):
 
 def getData():
 	pos_data = readFile(positiveData)
+	shuffle(pos_data)
 	neg_data_1 = readFile(negativeData1) # 97%
 	neg_data_2 = readFile(negativeData2) # 83%
 	neg_data_3 = readFile(negativeData3) # tflonesent 95.9% 
 	neg_data = neg_data_1 + neg_data_2 + neg_data_3
+	shuffle(neg_data)
 	return (pos_data, neg_data)
+
+def getMostCommon():
+	pos = read(positiveData)
+	neg1 = read(negativeData1)
+	neg2 = read(negativeData2)
+	neg3 = read(negativeData3)
+	alldata = pos + neg1 + neg2 + neg3
+	predicate = lambda x:x not in string.punctuation
+	filter(predicate, alldata)
+	all_data = nltk.tokenize.word_tokenize(alldata)
+	all_data_distribution = nltk.FreqDist(w.lower() for w in all_data)
+	most_common = all_data_distribution.most_common(50)
+	d_common = dict(most_common)
+	return d_common.keys()
+	print "Top 10 most frequent words: ", d_common.keys()
 
 # 1521 Positive training 
 # 13379 Negative Training 
@@ -178,6 +215,25 @@ def getChunkifiedData():
 
 	return (chunk_TrainingSet, chunk_TestingSet)
 
+def precision_recall(classifier, testing_data):
+	errors = [] 
+	true_pos = 0
+	all_retrieved = 0
+	all_pos = 0
+	for (prompt, tag) in testing_data:
+		guess = classifier.classify(extract_features(prompt))
+		if (guess == tag) and (guess == "pos"):
+			true_pos+= 1
+		if guess == "pos":
+			all_retrieved+=1
+		if tag == "pos":
+			all_pos+=1
+	print "true pos: ", true_pos
+	print "all retrieved: ", all_retrieved
+	print "recall: ", all_pos
+	precision = float(true_pos/all_retrieved)
+	recall = float(true_pos/all_pos)
+	return (precision, recall)
 # def cross_validate(testing_chunk,):
 # 	getChunkifiedData()
 
@@ -189,45 +245,36 @@ def save_to_file(text, filename):
 	f.close()
 
 
-all_data = getData()
-pos_data = getShuffledData(all_data[0], "pos")
-neg_data = getShuffledData(all_data[1], "neg")
+stopwords = getMostCommon()
+#get_data = getData()
+
+#all_data = getData()
+#save(all_data, "data.dump")
+
+all_data = load("data.dump")
+pos_data = get_tagged(all_data[0], "pos")
+neg_data = get_tagged(all_data[1], "neg")
 # train on just one negative dataset - test with the remaining 1/4th of the data set + all others
 # 94.88 (negative 1)
 # 94.1 (neg 2)
 # 93 (neg 3)
 # neg1[0] -> training; neg1[1] -> testing
-shuffled_training_data = pos_data[0] + neg_data[0] 
-shuffled_testing_data = pos_data[1] + neg_data[1]
+training_data = pos_data[0] + neg_data[0] 
+testing_data = pos_data[1] + neg_data[1]
 
 
-getChunkifiedData()
+#getChunkifiedData()
 
-#save_to_file(shuffled_training_data, 'training_data.txt')
-#save_to_file(shuffled_testing_data, 'testing_data.txt')
+#save_to_file(training_data, 'training_data.txt')
+#save_to_file(testing_data, 'testing_data.txt')
+
 # train and save data - training data takes a while 
-data = train(chunk_TrainingSet)
-
-# data = train(chunk_TrainingSet)
-save(data)
+#data = train(training_data)
+data = train(training_data)
+#data = train(chunk_TrainingSet)
+save_classifier(data)
 classifier = load_classifier()
-# 	First test: 
-#	95% accuracy
-# Note: precision changes??? everytime I run the classifier, but I'm not retraining the classifier... weird
-# precision = 264/283 -> 93% precision | 96.8%? (second test) | 94% (third test)
-# recall 276/507 -> 54%
-errors = [] 
-true_pos = 0
-all_retrieved = 0
-all_pos = 0
-for (prompt, tag) in chunk_TestingSet:
-	guess = classifier.classify(extract_features(prompt))
-	if (guess == tag) and (guess == "pos"):
-		true_pos = true_pos + 1
-	if guess == "pos":
-		all_retrieved = all_retrieved + 1
-	if tag == "pos":
-		all_pos = all_pos + 1
+
 	# TP - if guess is pos & tag is pos 
 	# if guess is pos 
 	#if guess != tag:
@@ -237,34 +284,11 @@ for (prompt, tag) in chunk_TestingSet:
 #	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
 
 # tests classifier, prints out the accuracy 
-print test_classifier(classifier, shuffled_testing_data)
+print test_classifier(classifier, testing_data)
 # prints out the most informative features (which words had the biggest impact)
 print classifier.show_most_informative_features()
+analysis = precision_recall(classifier, testing_data)
 
-print 'True Positives: ', true_pos
-print 'All Retrieved pos/neg: ', all_retrieved
-print 'All real Positive: ', all_pos
-
-# refsets = collections.defaultdict(set)
-# testsets = collections.defaultdict(set)
- 
-# for i, (feats, label) in enumerate(testing_data):
-# 	refsets[label].add(i)
-# 	observed = classifier.classify(extract_features(feats))
-# 	testsets[observed].add(i)
-
-#print extract_features("Ahh, it hit me right in the face.")
-#print cleanData("Ahh, it hit me right in the face.")
-#print loadTestData(negativeData1)
-#print test(data, "Ahh, it hit me right in the face.")
-# # some docs are longer than others, 
-# # use tf_idf to downscale the weights of teh words that occur in many docs 
-# # and are therefore less informative
-
-
-
-# write results to a doc (for debugging)
-#f = open('parsedData.txt', 'w')
-#f.write('\n'.join(str(v) for v in trainingData))
-#f.close()
+print "precision: ", analysis[0]
+print "recall: ", analysis[1]
 
