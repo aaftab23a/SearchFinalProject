@@ -10,7 +10,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.util import ngrams
 from random import shuffle
-
+import sklearn
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 # 1521 Positive training 
 # 13379 Negative Training 
 # 507 Positive Testing 
@@ -38,18 +40,21 @@ def readFile(path):
 def read(path): 
 	f = open(path, 'r')
 	text = f.read()
+
 	f.close()
 	return text
 
 def cleanData(line):
 	stemmer = PorterStemmer()
+#	snowball_stemmer = SnowballStemmer("english", ignore_stopwords = True)
+#	wnl_stemmer = WordNetLemmatizer()
 	no_stop = []
 	for word in line.split():
 #		no_stop.append(str(word.lower()))
 	#	no_stop.append(str(stemmer.stem(word.lower())))
 		if word not in stopwords:
-			no_stop.append(str(word.lower()))
-	#		no_stop.append(str(stemmer.stem(word.lower())))
+	#		no_stop.append(str(word.lower()))
+			no_stop.append(str(stemmer.stem(word.lower())))
 	#	if word not in stopwords.words('english'):
 	#		no_stop.append(stemmer.stem(word.lower()))
 	remove_punct = ' '.join(word.strip(string.punctuation) for word in no_stop) 
@@ -107,6 +112,9 @@ def train(training_data):
 def extract_features(phrase):
 	words = nltk.word_tokenize(phrase)
 	features = {}
+#	bigrams = ngrams(words, 3)
+#	for (w1, w2, w3) in bigrams:
+#		features['contains(%s, %s, %s)' % (w1, w2, w3)] = ((w1, w2, w3) in bigrams)
 	for word in words:
 		features['contains(%s)' % word] = (word in words)
 	return features
@@ -156,7 +164,15 @@ def getData():
 	neg_data_3 = readFile(negativeData3) # tflonesent 95.9% 
 	neg_data = neg_data_1 + neg_data_2 + neg_data_3
 	shuffle(neg_data)
-	return (pos_data, neg_data)
+	pos = []
+	neg = []
+	for line in pos_data:
+		d = cleanData(line)
+		pos.append(d)
+	for l in neg_data:
+		d = cleanData(l)
+		neg.append(d)
+	return (pos, neg)
 
 def getMostCommon():
 	pos = read(positiveData)
@@ -263,6 +279,21 @@ training_data = pos_data[0] + neg_data[0]
 testing_data = pos_data[1] + neg_data[1]
 
 
+count_vect = CountVectorizer(decode_error ='ignore', ngram_range=(1,2))
+vect = TfidfVectorizer(decode_error = 'ignore')
+tfidf = transformer.fit_transform(data[0])
+#d = read(positiveData) 
+clf = MultinomialNB().fit(tfidf)
+
+
+#	ad.append(unicode(w, 'utf-8'))
+#print unicode(all_data[0],'utf-8')
+
+data = getData()
+#print data[0]
+x_train_counts = count_vect.fit_transform(data[0])
+print x_train_counts
+
 #getChunkifiedData()
 
 #save_to_file(training_data, 'training_data.txt')
@@ -270,10 +301,10 @@ testing_data = pos_data[1] + neg_data[1]
 
 # train and save data - training data takes a while 
 #data = train(training_data)
-data = train(training_data)
+#data = train(training_data)
 #data = train(chunk_TrainingSet)
-save_classifier(data)
-classifier = load_classifier()
+#save_classifier(data)
+#classifier = load_classifier()
 
 	# TP - if guess is pos & tag is pos 
 	# if guess is pos 
@@ -284,11 +315,11 @@ classifier = load_classifier()
 #	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
 
 # tests classifier, prints out the accuracy 
-print test_classifier(classifier, testing_data)
+#print test_classifier(classifier, testing_data)
 # prints out the most informative features (which words had the biggest impact)
-print classifier.show_most_informative_features()
-analysis = precision_recall(classifier, testing_data)
+#print classifier.show_most_informative_features()
+#analysis = precision_recall(classifier, testing_data)
 
-print "precision: ", analysis[0]
-print "recall: ", analysis[1]
+#print "precision: ", analysis[0]
+#print "recall: ", analysis[1]
 
