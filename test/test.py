@@ -50,11 +50,12 @@ def cleanData(line):
 #	wnl_stemmer = WordNetLemmatizer()
 	no_stop = []
 	for word in line.split():
-#		no_stop.append(str(word.lower()))
+		no_stop.append(str(word.lower()))
 	#	no_stop.append(str(stemmer.stem(word.lower())))
-		if word not in stopwords:
+	#	if word not in stopwords:
+
 	#		no_stop.append(str(word.lower()))
-			no_stop.append(str(stemmer.stem(word.lower())))
+	#		no_stop.append(str(stemmer.stem(word.lower())))
 	#	if word not in stopwords.words('english'):
 	#		no_stop.append(stemmer.stem(word.lower()))
 	remove_punct = ' '.join(word.strip(string.punctuation) for word in no_stop) 
@@ -164,14 +165,12 @@ def getData():
 	neg_data_3 = readFile(negativeData3) # tflonesent 95.9% 
 	neg_data = neg_data_1 + neg_data_2 + neg_data_3
 	shuffle(neg_data)
-	pos = []
 	neg = []
-	for line in pos_data:
-		d = cleanData(line)
-		pos.append(d)
-	for l in neg_data:
-		d = cleanData(l)
-		neg.append(d)
+	pos = []
+	for n in neg_data: 
+		neg.append(cleanData(n))
+	for p in pos_data: 
+		pos.append(cleanData(p))
 	return (pos, neg)
 
 def getMostCommon():
@@ -264,8 +263,9 @@ def save_to_file(text, filename):
 stopwords = getMostCommon()
 #get_data = getData()
 
-#all_data = getData()
-#save(all_data, "data.dump")
+all_data = getData()
+
+save(all_data, "data.dump")
 
 all_data = load("data.dump")
 pos_data = get_tagged(all_data[0], "pos")
@@ -278,46 +278,30 @@ neg_data = get_tagged(all_data[1], "neg")
 training_data = pos_data[0] + neg_data[0] 
 testing_data = pos_data[1] + neg_data[1]
 
-
-count_vect = CountVectorizer(decode_error ='ignore', ngram_range=(1,2))
-vect = TfidfVectorizer(decode_error = 'ignore')
-tfidf = transformer.fit_transform(data[0])
-#d = read(positiveData) 
-clf = MultinomialNB().fit(tfidf)
-
-
-#	ad.append(unicode(w, 'utf-8'))
-#print unicode(all_data[0],'utf-8')
-
-data = getData()
-#print data[0]
-x_train_counts = count_vect.fit_transform(data[0])
-print x_train_counts
-
 #getChunkifiedData()
 
 #save_to_file(training_data, 'training_data.txt')
 #save_to_file(testing_data, 'testing_data.txt')
 
 # train and save data - training data takes a while 
-#data = train(training_data)
-#data = train(training_data)
+data = train(training_data)
 #data = train(chunk_TrainingSet)
-#save_classifier(data)
-#classifier = load_classifier()
+save_classifier(data)
+classifier = load_classifier()
 
-	# TP - if guess is pos & tag is pos 
-	# if guess is pos 
-	#if guess != tag:
-	#	errors.append((tag, guess, prompt))
+errors = []
+for (prompt, tag) in testing_data:
+	guess = classifier.classify(extract_features(prompt))
+	if guess != tag:
+		errors.append( (tag, guess, prompt) )
 
-#for (tag, guess, name) in sorted(errors):
-#	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
+for (tag, guess, name) in sorted(errors):
+	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
 
 # tests classifier, prints out the accuracy 
 #print test_classifier(classifier, testing_data)
 # prints out the most informative features (which words had the biggest impact)
-#print classifier.show_most_informative_features()
+print classifier.show_most_informative_features()
 #analysis = precision_recall(classifier, testing_data)
 
 #print "precision: ", analysis[0]
