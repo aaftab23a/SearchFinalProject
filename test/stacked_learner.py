@@ -7,12 +7,23 @@ import nltk, nltk.classify.util, nltk.metrics
 import collections
 import string 
 import pprint
+
+# import sklearn.datasets
+# import numpy as np
+
 import treetaggerwrapper
 from nltk.stem.porter import *
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.util import ngrams
 from random import shuffle
+
+# from sklearn.datasets import fetch_20newsgroups
+# from sklearn.feature_extraction.text import CountVectorizer
+# from sklearn.feature_extraction.text import TfidfTransformer
+# from sklearn.naive_bayes import MultinomialNB
+# from sklearn.pipeline import Pipeline
+
 
 import os
 
@@ -92,20 +103,35 @@ txt = ["this is a very short text to tag","this is another text to tag"]
 
 pos_unicode_text = convert_to_unicode(pos_data)
 neg_unicode_text = convert_to_unicode(neg_data)
-# unicode_text = convert_to_unicode(txt)
+unicode_text 	 = convert_to_unicode(txt)
 
-# tags = tagger.tag_text(unicode_text)
-# pprint.pprint(tags)
+
+
+def extract_tags (tags) :
+	extracted = []
+	for string in tags :
+		st = ""
+		for term in string : 
+			st += term.split()[1]+ " "
+		extracted.append(st)
+	print extracted
+	return extracted
+
 
 def tag_text (txt) :
 	tags = []
 	for t in txt:
 		tags.append(tagger.tag_text(t))
-	print tags
 	return tags
+
+tags = tag_text(unicode_text)
+
 
 pos_tags = tag_text(pos_unicode_text)
 neg_tags = tag_text(neg_unicode_text)
+
+extract_tags(pos_tags)
+extract_tags(neg_tags)
 
 
 # tags2 = treetaggerwrapper.make_tags(tags)
