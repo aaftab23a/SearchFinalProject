@@ -1,0 +1,45 @@
+2015-08-xx
+Global code review, interface modifications, many enhancements, port
+to Python2 (recent) and Python3, rework documentation.
+
+2011-01-09
+Work on packaging (will try to provide a Python egg later).
+Modified first Popen parameter to be a list in place of a string (use of
+a string make processing start a problem under my Linux).
+At some time of text processing, use sleep() to have the writer thread
+and TreeTagger communicate - else many process time is simply used to pool
+on an empty pipe.
+
+2011-01-06
+Modified TT launch to use subprocess module in place of popen2 (preparation
+for a Python 3 version branch for Felix Haller).
+Start of a test suite.
+
+2009-10-13
+Initial import of project on SourceSup subversion hosting.
+Moved history from module docstring into this file.
+
+2009-09-28
+Modified TagText like Katie Bell indicate when the tagonly options is used
+(consider the input text to ba already pre-processed, and to only be a set
+of lines with one TreeTagger token per line) (bug signaled by Joel Nothman
+too).
+Added support for spanish using Marco Turchi proposed 'es' options in
+g_langsupport.
+Fixed bug in StartProcess when creating tagcmd string (quote the tagparfile
+parameter).
+
+2007-12-19
+Switch to unicode internally, encode / decode outputs and inputs.
+
+2007-12-19
+Integration of patch from Frédéric Fauberteau to resolve the translate problem,
+and to fix -d option misstyping in getopt.
+
+2005-09-29
+Added support for darwin on the request of (and with tests from)
+Mauro Cherubini.
+
+2005
+Initial version built for Nadia Djebli and Saber Aloui training at LIMSI.
+

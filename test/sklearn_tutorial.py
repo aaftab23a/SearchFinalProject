@@ -42,6 +42,7 @@ target = pos_target + neg_target
 
 ## NOTE: Split this up into training and testing data; this is impossible to test
 text_clf = text_clf.fit(pos_data + neg_data, target)
+print text_clf
 
 # my lame attempt at testing. Don't work
 #docs_new = ['its so hard']

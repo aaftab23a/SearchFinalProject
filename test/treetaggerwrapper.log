@@ -1,0 +1,18 @@
+T140735304045328 2015-12-08 16:12:05,921 INFO filesencoding=utf-8
+T140735304045328 2015-12-08 16:12:05,923 DEBUG Using treetaggerwrapper.py from /Users/najwaelkhamlichi/Desktop/SearchFinalProject/test/treetaggerwrapper.py
+T140735304045328 2015-12-08 16:12:05,923 DEBUG Use default value for param TAGLANG.
+T140735304045328 2015-12-08 16:12:05,923 INFO lang=en
+T140735304045328 2015-12-08 16:12:05,923 DEBUG Use default value for param TAGDIR.
+T140735304045328 2015-12-08 16:12:05,960 ERROR Failed to find TreeTagger from automatic directories list.
+T140735304045328 2015-12-08 16:12:05,960 ERROR If you installed TreeTagger in a standard place, please contact the treetaggerwrapper author to add this place to this list.
+T140735304045328 2015-12-08 16:12:05,961 ERROR To continue working, setup TAGDIR env var to TreeTagger directory.
+T140735304045328 2015-12-08 16:12:05,961 ERROR Can't locate TreeTagger directory (and no TAGDIR specified).
+T140735304045328 2015-12-08 16:23:43,655 INFO filesencoding=utf-8
+T140735304045328 2015-12-08 16:23:43,657 DEBUG Using treetaggerwrapper.py from /Users/najwaelkhamlichi/Desktop/SearchFinalProject/test/treetaggerwrapper.py
+T140735304045328 2015-12-08 16:23:43,657 DEBUG Use default value for param TAGLANG.
+T140735304045328 2015-12-08 16:23:43,657 INFO lang=en
+T140735304045328 2015-12-08 16:23:43,657 DEBUG Use default value for param TAGDIR.
+T140735304045328 2015-12-08 16:23:43,725 ERROR Failed to find TreeTagger from automatic directories list.
+T140735304045328 2015-12-08 16:23:43,726 ERROR If you installed TreeTagger in a standard place, please contact the treetaggerwrapper author to add this place to this list.
+T140735304045328 2015-12-08 16:23:43,726 ERROR To continue working, setup TAGDIR env var to TreeTagger directory.
+T140735304045328 2015-12-08 16:23:43,726 ERROR Can't locate TreeTagger directory (and no TAGDIR specified).
