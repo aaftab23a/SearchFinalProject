@@ -41,7 +41,7 @@ negativeData1 = '../data/fml.txt'
 negativeData3 = '../data/tflnonesent.txt'
 
 training_data = []
-testing_data = [] 
+testing_data  = [] 
 
 def read_file(path) : 
 	f = open(path, 'r')
@@ -63,8 +63,6 @@ def process_text(txt) :
 	# print text
 	return text
 
-
-
 def pos_tagging (txt) :
 	tples =[]
 	for t in txt :
@@ -73,25 +71,20 @@ def pos_tagging (txt) :
 	return tples
 
 pos_data = read_file(positiveData)
-neg_data = read_file(negativeData1)
 
-# pos_tagging(pos_data)
-# pos_tagging(neg_data)
+neg_data1 = read_file(negativeData1)
+neg_data2 = read_file(negativeData2)
+# neg_data3 = read_file(negativeData3)
 
-
-# def clean_tuples(tples) :
-# 	temp = []
-# 	for t in tples:
-# 		# print t
-# 		temp.append(t[1])
-# 	print temp
-# 	return temp
+neg_data = neg_data1 + neg_data2
+shuffle(neg_data)
+neg_data = neg_data[:2020]
+# len = 5968
 
 def clean_tuples(text) :
 	temp = ''
 	data = []
 	for t in text:
-		print t
 		for p in tples:
 			temp += p[1] +''
 		data.append(temp)
@@ -111,8 +104,6 @@ txt = ["this is a very short text to tag","this is another text to tag"]
 pos_unicode_text = convert_to_unicode(pos_data)
 neg_unicode_text = convert_to_unicode(neg_data)
 unicode_text 	 = convert_to_unicode(txt)
-
-
 
 def extract_tags (tags) :
 	extracted = []
@@ -140,8 +131,8 @@ neg_tags = tag_text(neg_unicode_text)
 final_pos_data = extract_tags(pos_tags)
 final_neg_data = extract_tags(neg_tags)
 
-training_data = final_pos_data[:1515]+final_neg_data[:1326]
-testing_data  = final_pos_data[1516:2020]+final_neg_data[1327:]
+training_data = final_pos_data[:1515]+final_neg_data[:1515]
+testing_data  = final_pos_data[1516:2020]+final_neg_data[1516:2020]
 
 
 text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
@@ -149,15 +140,13 @@ text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=
         ])
 
 training_pos_target = [0]*len(final_pos_data[:1515])
-training_neg_target = [1]*len(final_neg_data[:1326])
+training_neg_target = [1]*len(final_neg_data[:1515])
 
 testing_pos_target = [0]*len(final_pos_data[1516:2020])
-testing_neg_target = [1]*len(final_neg_data[1327:])
-
+testing_neg_target = [1]*len(final_neg_data[1516:2020])
 
 training_target = training_pos_target + training_neg_target
 testing_target = testing_pos_target + testing_neg_target
-
 
 text_clf = text_clf.fit(training_data, training_target)
 
