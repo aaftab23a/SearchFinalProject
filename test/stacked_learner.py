@@ -159,11 +159,25 @@ print np.mean(predicted == testing_target)
 print (metrics.classification_report(testing_target, predicted))
 print metrics.confusion_matrix(testing_target, predicted)
 
-for i in predicted : 
+def save_classifier_output ( data, file_name):
+	ofile = open(file_name, 'w+')
+	output = []
+	for i in data : 
+		output.append(i)
 	print i 
-# for prompt in testing_data:
-# 	print text_clf.predict(prompt) 
-	# print prompt
+	pickle.dump(output, ofile)
+	ofile.close()
+
+save_classifier_output( predicted,"pos_output.dump" )
+
+def load(filename):
+	ifile = open(filename, 'r+')
+	data = pickle.load(ifile)
+	ifile.close()
+	return data
+
+pos_output = load("pos_output.dump")
+print pos_output
 
 
 
