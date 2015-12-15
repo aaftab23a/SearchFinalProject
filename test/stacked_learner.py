@@ -136,8 +136,12 @@ testing_data  = final_pos_data[1516:2020]+final_neg_data[1516:2020]
 
 
 text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
-            	 	('clf', DecisionTreeClassifier()), 
+            	 	('clf', SVC(kernel='rbf')),
         ])
+
+# text_clf2 = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
+#             	 	('clf', SVC(kernel='rbf')),
+#         ])
 
 training_pos_target = [0]*len(final_pos_data[:1515])
 training_neg_target = [1]*len(final_neg_data[:1515])
@@ -154,6 +158,14 @@ predicted = text_clf.predict(testing_data)
 print np.mean(predicted == testing_target)
 print (metrics.classification_report(testing_target, predicted))
 print metrics.confusion_matrix(testing_target, predicted)
+
+for i in predicted : 
+	print i 
+# for prompt in testing_data:
+# 	print text_clf.predict(prompt) 
+	# print prompt
+
+
 
 
 
