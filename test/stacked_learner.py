@@ -1,20 +1,12 @@
 from __future__ import division
-import multiprocessing as mp
 import re
 import sys 
 import pickle  
 import collections
 import string 
-import pprint
 
 import numpy as np
-
 import treetaggerwrapper
-from nltk.stem.porter import *
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.util import ngrams
-from random import shuffle
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -29,9 +21,8 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
 from sklearn import svm, datasets
-
-
 import os
+
 
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
@@ -77,8 +68,10 @@ neg_data2 = read_file(negativeData2)
 # neg_data3 = read_file(negativeData3)
 
 neg_data = neg_data1 + neg_data2
-shuffle(neg_data)
+
 neg_data = neg_data[:2020]
+print 'neg data ', len(neg_data)
+
 # len = 5968
 
 def clean_tuples(text) :
@@ -112,7 +105,6 @@ def extract_tags (tags) :
 		for term in string : 
 			st += term.split()[1]+ " "
 		extracted.append(st)
-	print extracted
 	return extracted
 
 
@@ -139,10 +131,13 @@ text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=
             	 	('clf', SVC(kernel='rbf')),
         ])
 
-# text_clf2 = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
-#             	 	('clf', SVC(kernel='rbf')),
-#         ])
+def load(filename):
+	ifile = open(filename, 'r+')
+	data = pickle.load(ifile)
+	ifile.close()
+	return data
 
+######################## pos train/test data #######################
 training_pos_target = [0]*len(final_pos_data[:1515])
 training_neg_target = [1]*len(final_neg_data[:1515])
 
@@ -154,30 +149,75 @@ testing_target = testing_pos_target + testing_neg_target
 
 text_clf = text_clf.fit(training_data, training_target)
 
-predicted = text_clf.predict(testing_data)
-print np.mean(predicted == testing_target)
-print (metrics.classification_report(testing_target, predicted))
-print metrics.confusion_matrix(testing_target, predicted)
+pos_predicted = text_clf.predict(testing_data)
+
+print "##################################### POS tagging ###########################"
+print np.mean(pos_predicted == testing_target)
+print (metrics.classification_report(testing_target, pos_predicted))
+print metrics.confusion_matrix(testing_target, pos_predicted)
+
 
 def save_classifier_output ( data, file_name):
 	ofile = open(file_name, 'w+')
 	output = []
 	for i in data : 
 		output.append(i)
-	print i 
+
 	pickle.dump(output, ofile)
 	ofile.close()
 
-save_classifier_output( predicted,"pos_output.dump" )
+save_classifier_output( pos_predicted,"pos_output.dump" )
 
-def load(filename):
-	ifile = open(filename, 'r+')
-	data = pickle.load(ifile)
-	ifile.close()
-	return data
 
-pos_output = load("pos_output.dump")
-print pos_output
+# our 3 models
+# pos tagging => svm
+# content based => naive bayse
+# content based => DecisionTree
+
+pos_output  = load("pos_output.dump")
+svm_output   = load("svm_output.dump")
+tree_output = load("tree_output.dump")
+
+if collections.Counter(pos_output) == collections.Counter(svm_output) :
+	print "******************** they are the same ***************"
+
+# cases
+# 0 0 1 
+# 1 1 0 
+# 0 0 0 
+# 1 1 1
+
+def find_average_prediction() :
+	avg_output = []
+	for x , y, z in zip( pos_output, svm_output, tree_output) :
+		sum_tag = x + y + z
+		if sum_tag == 0 or sum_tag == 1:
+			avg_output.append(0)
+		elif sum_tag >= 2 :
+			avg_output.append(1)
+	return avg_output
+
+all_data = load("data.dump")
+pos_data = all_data[0]
+neg_data = all_data[1]
+
+testing_pos = pos_data[1516:2020]
+testing_neg = neg_data[1516:2020]
+
+testing_pos_target = [0]*len(testing_pos)
+testing_neg_target = [1]*len(testing_neg)
+
+testing_target = testing_pos_target + testing_neg_target
+
+average_predicted = find_average_prediction()
+
+print "################################## avg #########################################"
+np.array(average_predicted).dump(open('avg.npy', 'wb'))
+avg = np.load(open('avg.npy', 'rb'))
+
+print np.mean( avg == testing_target )
+print (metrics.classification_report(testing_target, avg))
+print metrics.confusion_matrix(testing_target, avg)
 
 
 
