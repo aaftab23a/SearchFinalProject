@@ -3,13 +3,11 @@ import multiprocessing as mp
 import re
 import sys 
 import pickle  
-import nltk, nltk.classify.util, nltk.metrics
 import collections
 import string 
 import pprint
 
-# import sklearn.datasets
-# import numpy as np
+import numpy as np
 
 import treetaggerwrapper
 from nltk.stem.porter import *
@@ -18,11 +16,19 @@ from nltk.corpus import stopwords
 from nltk.util import ngrams
 from random import shuffle
 
-# from sklearn.datasets import fetch_20newsgroups
-# from sklearn.feature_extraction.text import CountVectorizer
-# from sklearn.feature_extraction.text import TfidfTransformer
-# from sklearn.naive_bayes import MultinomialNB
-# from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import average_precision_score
+from sklearn.preprocessing import label_binarize
+from sklearn import metrics
+from sklearn.linear_model import SGDClassifier
+from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
+from sklearn import svm, datasets
 
 
 import os
@@ -30,11 +36,12 @@ import os
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
 positiveData = '../data/twssstories.txt'
-negativeData1 = '../data/wikiquotes.txt'
-negativeData2 = '../data/fml.txt'
+negativeData2 = '../data/wikiquotes.txt'
+negativeData1 = '../data/fml.txt'
 negativeData3 = '../data/tflnonesent.txt'
 
-stopwords = [] 
+training_data = []
+testing_data = [] 
 
 def read_file(path) : 
 	f = open(path, 'r')
@@ -130,33 +137,34 @@ tags = tag_text(unicode_text)
 pos_tags = tag_text(pos_unicode_text)
 neg_tags = tag_text(neg_unicode_text)
 
-extract_tags(pos_tags)
-extract_tags(neg_tags)
+final_pos_data = extract_tags(pos_tags)
+final_neg_data = extract_tags(neg_tags)
+
+training_data = final_pos_data[:1515]+final_neg_data[:1326]
+testing_data  = final_pos_data[1516:2020]+final_neg_data[1327:]
 
 
-# tags2 = treetaggerwrapper.make_tags(tags)
-# pprint.pprint( tags2)
+text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
+            	 	('clf', DecisionTreeClassifier()), 
+        ])
+
+training_pos_target = [0]*len(final_pos_data[:1515])
+training_neg_target = [1]*len(final_neg_data[:1326])
+
+testing_pos_target = [0]*len(final_pos_data[1516:2020])
+testing_neg_target = [1]*len(final_neg_data[1327:])
 
 
-
-# if __name__ == '__main__':
-#     p = Process(target=clean_tuples, args=(pos_tagging(d[:2]),pos_tagging(d[2:])))
-#     p.start()
-#     p.join()
-
-# processes = [mp.Process(target=clean_tuples, args=(pos_tagging(d))) for x in range(4)]
-
-# # Run processes
-# for p in processes:
-#     p.start()
-
-# # Exit the completed processes
-# for p in processes:
-#     p.join()
+training_target = training_pos_target + training_neg_target
+testing_target = testing_pos_target + testing_neg_target
 
 
+text_clf = text_clf.fit(training_data, training_target)
 
-
+predicted = text_clf.predict(testing_data)
+print np.mean(predicted == testing_target)
+print (metrics.classification_report(testing_target, predicted))
+print metrics.confusion_matrix(testing_target, predicted)
 
 
 
