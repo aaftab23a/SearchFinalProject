@@ -12,7 +12,6 @@ from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
-import matplotlib.pyplot as plt
 from sklearn import svm, datasets
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
@@ -47,15 +46,16 @@ testing_data = []
 pos_data = all_data[0]
 neg_data = all_data[1]
 
-training_pos = getTraining(pos_data)
-training_neg = getTraining(neg_data)
+training_pos = pos_data[:1515]
+training_neg = neg_data[:1515]
 training_data = training_pos + training_neg
 #training_data.append(training_pos)
 #training_data.append(training_neg)
 
-testing_pos = getTesting(pos_data) 
-testing_neg = getTesting(neg_data)
+testing_pos = pos_data[1516:2020]
+testing_neg = neg_data[1516:2020]
 testing_data = testing_pos + testing_neg
+
 #testing_data.append(testing_pos)
 #testing_data.append(testing_neg)
 
@@ -65,8 +65,8 @@ cv = CountVectorizer(decode_error ='ignore')
 tfidf_transformer = TfidfTransformer()
                		
 text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
-            	 	('clf', DecisionTreeClassifier()), 
-            	# 	('clf', SVC(kernel='rbf')),
+            	# 	('clf', DecisionTreeClassifier()), 
+            		('clf', SVC(kernel='rbf')),
         ])
 
 # TAGGING the data - seperate array
@@ -118,5 +118,57 @@ print np.mean(predicted == testing_target)
 print (metrics.classification_report(testing_target, predicted))
 print metrics.confusion_matrix(testing_target, predicted)
 
+def save_classifier_output ( data, file_name):
+	ofile = open(file_name, 'w+')
+	output = []
+	for i in data : 
+		output.append(i)
+	print i 
+	pickle.dump(output, ofile)
+	ofile.close()
+
+save_classifier_output( predicted,"svm_output.dump" )
+
+
+tree_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
+            	 	('clf', DecisionTreeClassifier()), 
+        ])
+
+
+# ###################### tree ###########################
+all_data = load("data.dump")
+pos_data = all_data[0]
+neg_data = all_data[1]
+
+training_pos = pos_data[:1515]
+training_neg = neg_data[:1515]
+
+testing_pos = pos_data[1516:2020]
+testing_neg = neg_data[1516:2020]
+
+training_pos_target = [0]*len(training_pos)
+training_neg_target = [1]*len(training_neg)
+
+testing_pos_target = [0]*len(testing_pos)
+testing_neg_target = [1]*len(testing_neg)
+
+print "training_pos *****", len(testing_pos_target)
+print "training_neg *****", len(testing_neg_target)
+training_target = training_pos_target + training_neg_target
+training_data   = training_pos + training_neg
+testing_target	= testing_pos_target + testing_neg_target
+testing_data 	= testing_pos + testing_neg
+
+tree_clf = tree_clf.fit(training_data, training_target)
+tree_predicted = tree_clf.predict(testing_data)
+# predicted : 1008, testing_target : 
+print "predicted ***** ", len(tree_predicted)
+print "testing_target **** ", len(testing_target)
+print "##################################### DecisionTree ###########################"
+print np.mean(tree_predicted == testing_target)
+print (metrics.classification_report(testing_target, tree_predicted))
+print metrics.confusion_matrix(testing_target, tree_predicted)
+
+save_classifier_output( tree_predicted,"tree_output.dump" )
 
 
