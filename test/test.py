@@ -17,6 +17,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # 13379 Negative Training 
 # 507 Positive Testing 
 # 4460 Negative Testing 
+
+
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
 positiveData = '../data/twssstories.txt'
@@ -24,11 +26,13 @@ negativeData1 = '../data/wikiquotes.txt'
 negativeData2 = '../data/fml.txt'
 negativeData3 = '../data/tflnonesent.txt'
 
+oneliner_positive = '../data/Jokes16000.txt'
+oneliner_negative = '../data/MIX16000.txt'
+
 # for cross-validation
 chunk_TrainingSet = []
 chunk_TestingSet  = []
 stopwords = [] 
-
 
 
 def readFile(path): 
@@ -50,14 +54,7 @@ def cleanData(line):
 #	wnl_stemmer = WordNetLemmatizer()
 	no_stop = []
 	for word in line.split():
-		no_stop.append(str(word.lower()))
-	#	no_stop.append(str(stemmer.stem(word.lower())))
-	#	if word not in stopwords:
-
-	#		no_stop.append(str(word.lower()))
-	#		no_stop.append(str(stemmer.stem(word.lower())))
-	#	if word not in stopwords.words('english'):
-	#		no_stop.append(stemmer.stem(word.lower()))
+		no_stop.append(str(stemmer.stem(word.lower())))
 	remove_punct = ' '.join(word.strip(string.punctuation) for word in no_stop) 
 	#stemmed = [stemmer.stem(p) for p in remove_punct]
 	return remove_punct
@@ -140,12 +137,12 @@ def save(data, filename):
 	pickle.dump(data, ofile)
 	ofile.close()
 
-
 def load(filename):
 	ifile = open(filename, 'r+')
 	data = pickle.load(ifile)
 	ifile.close()
 	return data
+
 # takes in some text, shuffles, splits into pos and neg
 def get_tagged(txt, tag):
 	length = len(txt)
@@ -160,6 +157,8 @@ def get_tagged(txt, tag):
 def getData():
 	pos_data = readFile(positiveData)
 	shuffle(pos_data)
+	oneliner_n = readFile(oneliner_negative)
+	oneliner_p = readFile(oneliner_positive)
 	neg_data_1 = readFile(negativeData1) # 97%
 	neg_data_2 = readFile(negativeData2) # 83%
 	neg_data_3 = readFile(negativeData3) # tflonesent 95.9% 
@@ -174,11 +173,12 @@ def getData():
 	return (pos, neg)
 
 def getMostCommon():
-	pos = read(positiveData)
-	neg1 = read(negativeData1)
-	neg2 = read(negativeData2)
-	neg3 = read(negativeData3)
-	alldata = pos + neg1 + neg2 + neg3
+#	pos = read(positiveData)
+#	neg1 = read(negativeData1)
+#	neg2 = read(negativeData2)
+#	neg3 = read(negativeData3)
+	#alldata = pos + neg1 + neg2 + neg3
+	alldata = read(oneliner_positive) + read(oneliner_negative)
 	predicate = lambda x:x not in string.punctuation
 	filter(predicate, alldata)
 	all_data = nltk.tokenize.word_tokenize(alldata)
@@ -217,14 +217,13 @@ def getChunkifiedData():
 	pos_data = tag_sentence(pos_data,"pos")
 	neg_data = tag_sentence(neg_data,"neg")
 
-
 	chunkifyData(pos_data, pos_chunks, 1521, pos_step)
 	chunkifyData(neg_data, neg_chunks, 13379, neg_step)
 
 	shuffle(pos_chunks)
 	shuffle(neg_chunks)
 
-#after every shuffle the first index has a different piece of the text, so we test on the other 4 indeces
+	#after every shuffle the first index has a different piece of the text, so we test on the other 4 indeces
 	chunk_TrainingSet.extend(pos_chunks[0] + neg_chunks[0] )
 	chunk_TestingSet.extend(pos_chunks[0]  + neg_chunks[0] + pos_chunks[1] + neg_chunks[1] + pos_chunks[2] + neg_chunks[2] + pos_chunks[3] + neg_chunks[3] + pos_chunks[4] + neg_chunks[4])
 
@@ -267,7 +266,7 @@ all_data = getData()
 
 save(all_data, "data.dump")
 
-all_data = load("data.dump")
+#all_data = load("data.dump")
 pos_data = get_tagged(all_data[0], "pos")
 neg_data = get_tagged(all_data[1], "neg")
 # train on just one negative dataset - test with the remaining 1/4th of the data set + all others
@@ -288,22 +287,41 @@ data = train(training_data)
 #data = train(chunk_TrainingSet)
 save_classifier(data)
 classifier = load_classifier()
-
+print test_classifier(classifier, testing_data)
 errors = []
 for (prompt, tag) in testing_data:
 	guess = classifier.classify(extract_features(prompt))
 	if guess != tag:
 		errors.append( (tag, guess, prompt) )
 
-for (tag, guess, name) in sorted(errors):
-	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
+#for (tag, guess, name) in sorted(errors):
+#	print('correct={:<8} guess={:<8s} name={:<30}'.format(tag, guess, name))
 
 # tests classifier, prints out the accuracy 
 #print test_classifier(classifier, testing_data)
 # prints out the most informative features (which words had the biggest impact)
 print classifier.show_most_informative_features()
-#analysis = precision_recall(classifier, testing_data)
+analysis = precision_recall(classifier, testing_data)
 
-#print "precision: ", analysis[0]
-#print "recall: ", analysis[1]
+print "precision: ", analysis[0]
+print "recall: ", analysis[1]
+
+
+# NO STEM + STOPWORD 
+# accuracy = 94.966% accuracy 
+# Recall - 58%; Precision - 88% 
+
+# STEMMING + STOPWORDING 
+# Accuracy = 95.2% 
+# Recall 56%; Precision 93% 
+
+# NO STEMMING + NO STOPWORDING 
+# Accuracy 95.3% 
+# Precision 89% 
+# Recall: 61.5%
+
+
+
+
+
 

@@ -1,5 +1,3 @@
-print(__doc__)
-
 import pickle  
 import sklearn.datasets
 from sklearn.datasets import fetch_20newsgroups
@@ -12,13 +10,10 @@ from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
-import matplotlib.pyplot as plt
-from sklearn import svm, datasets
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import average_precision_score
-from sklearn.preprocessing import label_binarize
-from sklearn import tree
-from sklearn.tree import DecisionTreeClassifier
+#from sklearn import svm, datasets
+#from sklearn.metrics import precision_recall_curve
+#from sklearn.metrics import average_precision_score
+#from sklearn.preprocessing import label_binarize
 
 def load(filename):
 	ifile = open(filename, 'r+')
@@ -65,8 +60,8 @@ cv = CountVectorizer(decode_error ='ignore')
 tfidf_transformer = TfidfTransformer()
                		
 text_clf = Pipeline([('vect', CountVectorizer(decode_error ='ignore', tokenizer=lambda doc: doc, lowercase=False)),
-            	 	('clf', DecisionTreeClassifier()), 
-            	# 	('clf', SVC(kernel='rbf')),
+            	 #	('clf', DecisionTreeClassifier()), 
+            		('clf', SVC(kernel='rbf')),
         ])
 
 # TAGGING the data - seperate array
@@ -113,7 +108,9 @@ testing_target = testing_pos_target + testing_neg_target
 ## NOTE: Split this up into training and testing data; this is impossible to test
 text_clf = text_clf.fit(training_data, training_target)
 
+save(text_clf, 'svm_classifier.dump')
 predicted = text_clf.predict(testing_data)
+
 print np.mean(predicted == testing_target)
 print (metrics.classification_report(testing_target, predicted))
 print metrics.confusion_matrix(testing_target, predicted)
