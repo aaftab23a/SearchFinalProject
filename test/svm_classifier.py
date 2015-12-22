@@ -56,6 +56,7 @@ def print_metrics(trained_classifier, testing_data):
 	predicted = trained_classifier.predict(testing_data)
 	print np.mean(predicted == testing_target)
 	print (metrics.classification_report(testing_target, predicted))
+	save(predicted,"svm_output.dump") 
 
 # load data
 pos_training = load("pos_data_training.dump")
@@ -77,4 +78,7 @@ classifier = get_classifier()
 trained_classifier =  train(classifier, training_data, training_target)
 
 print_metrics(trained_classifier, testing_data)
+
+
+
 
