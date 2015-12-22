@@ -77,25 +77,21 @@ def getMostCommon(data):
 def get_data():
 	""" Retrive, shuffles and cleans data. Returns a tuple in the form (positive data, negative data) """ 
 	pos_data = readFile(positiveData).split("\n")
-	neg_data_1 = readFile(negativeData1).split("\n") # 97%
-	neg_data_2 = readFile(negativeData2).split("\n") # 83%
-	neg_data_3 = readFile(negativeData3).split("\n") # tflonesent 95.9% 
+	neg_data_1 = readFile(negativeData1).split("\n") 
+	neg_data_2 = readFile(negativeData2).split("\n") 
+	neg_data_3 = readFile(negativeData3).split("\n") 
 	neg_data = neg_data_1 + neg_data_2 + neg_data_3
 	shuffle(pos_data)
 	shuffle(neg_data)
 	return (clean_data(pos_data), clean_data(neg_data))
 
-# Returns an array of cleandata
 def clean_data(data):
-	""" Cleans each element in the data object. """ 
+	""" Cleans each element in the data object. Returns a 'cleaned' data object""" 
 	clean_data = [] 
 	for d in data:
 		clean_data.append(process_data(d))
 	return clean_data
 
-# take in a some array of strings (each index has a sentence)
-# return the first 3/4 of the array of strings for training data
-# assumes everything is randomly sorted and there is no bias in terms of ordering
 def split_training(data):
 	""" Splits data into training and testing. Training data consists of the first 3/4ths of a shuffled dataset. The remaining 1/4th is testing data. 
 		Returns a tuple in the form (training data, testing data). """ 

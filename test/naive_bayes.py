@@ -27,9 +27,6 @@ def load(filename):
 	fname = os.path.join(PICKLE_DIR, filename)
 	with open(fname, 'r+') as fp:
 		data = pickle.load(fp)
-#	ifile = open(filename, 'r+')
-#	data = pickle.load(ifile)
-#	ifile.close()
 	return data
 
 
@@ -96,10 +93,7 @@ def get_precision_recall(classifier, testing_data):
 	recall = true_pos/float(all_pos)
 	return (precision, recall)
 
-# 1521 Positive training 
-# 13379 Negative Training 
-# 507 Positive Testing 
-# 4460 Negative Testing 
+# 1521 Positive training, 13379 Negative Training , 507 Positive Testing, 4460 Negative Testing 
 def chunkifyData (text,chunks_list,text_length,chunk_length):
 	for i in range(0,text_length,chunk_length):
 		chunks_list.append(text[i:i+chunk_length])
@@ -137,9 +131,11 @@ pos_training = load("pos_data_training.dump")
 neg_training = load("neg_data_training.dump")
 pos_testing = load("pos_data_testing.dump")
 neg_testing = load("neg_data_testing.dump")
-# tag sentences as negative 
+
+# tag training prompts as positive and negative 
 pos_training = tag_sentence(pos_training, "pos")
 neg_training = tag_sentence(neg_training, "neg")
+
 # train 
 nb_classifier = train(pos_training + neg_training)
 save(nb_classifier, 'nb_classifier.dump')
@@ -148,6 +144,7 @@ save(nb_classifier, 'nb_classifier.dump')
 pos_testing = tag_sentence(pos_testing, "pos")
 neg_testing = tag_sentence(neg_testing, "neg")
 testing_data = pos_testing + neg_testing 
+
 print test_classifier(nb_classifier, testing_data)
 # get_errors(testing_data, nb_classifier)
 print get_precision_recall(nb_classifier, testing_data)
