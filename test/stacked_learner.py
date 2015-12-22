@@ -1,3 +1,7 @@
+""" Trains data using POS tags as features. Combines the outputs of three classifiers (SVM trained on POS, SVM trained on unigrams, and RandomForest) to form a stacked learner model. """
+__author__      = "Nachwa El khamlichi"
+__email__ = "elkha22n@mtholyoke.edu"
+
 from __future__ import division
 import re
 import sys 
