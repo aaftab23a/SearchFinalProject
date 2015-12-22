@@ -1,5 +1,8 @@
+""" Trains data using the Random Forest Classifier """
+__author__      = "Nachwa El khamlichi"
+__email__ = "elkha22n@mtholyoke.edu"
+
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import precision_recall_curve
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
 import os, sys
@@ -54,6 +57,7 @@ print (metrics.classification_report(testing_target, tree_predicted))
 print metrics.confusion_matrix(testing_target, tree_predicted)
 
 def save_classifier_output ( data, file_name):
+	''' Pickle data and save '''
  	ofile = open(file_name, 'w+')
  	output = []
  	for i in data : 
