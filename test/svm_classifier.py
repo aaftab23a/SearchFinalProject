@@ -2,7 +2,6 @@
 
 from sklearn.svm import SVC
 from sklearn.naive_bayes import MultinomialNB
-
 import pickle  
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
@@ -17,7 +16,7 @@ sys.setdefaultencoding('ISO-8859-1')
 def save(data, filename):
 	""" Saves data in a pickle file """
 	ofile = open(filename, "w+")
-	pickle.dump(data, ofile)
+	pickle.dumps(data, ofile)
 	ofile.close()
 
 # helper fuction: loads data from a pickle file
@@ -53,6 +52,8 @@ def get_target(pos_data, neg_data):
 def print_metrics(trained_classifier, testing_data):
 	predicted = trained_classifier.predict(testing_data)
 	print np.mean(predicted == testing_target)
+	print (metrics.classification_report(testing_target, predicted))
+
 # load data
 pos_training = load("pos_data_training.dump")
 neg_training = load("neg_data_training.dump")
@@ -72,11 +73,10 @@ training_target = get_target(pos_training, neg_training)
 classifier = get_classifier() 
 trained_classifier =  train(classifier, training_data, training_target)
 
-# pickling erorr? 
+# pickling error
 #save(trained_classifier, "svm_classifier.pk")
 
-predicted = trained_classifier.predict(testing_data)
- 
-print np.mean(predicted == testing_target)
-print (metrics.classification_report(testing_target, predicted))
+#predicted = trained_classifier.predict(testing_data)
+print_metrics(trained_classifier, testing_data)
+#print np.mean(predicted == testing_target)
 

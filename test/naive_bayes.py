@@ -9,6 +9,11 @@ import sys
 
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
+# for cross-validation
+chunk_TrainingSet = []
+chunk_TestingSet  = []
+stopwords = []
+
 # saves data to a pickle file 
 def save(data, filename):
 	""" Saves data in a pickle file """
@@ -99,6 +104,42 @@ def get_precision_recall(classifier, testing_data):
 	recall = float(true_pos/all_pos)
 	print "Recall: ", recall 
 	return (precision, recall)
+
+# 1521 Positive training 
+# 13379 Negative Training 
+# 507 Positive Testing 
+# 4460 Negative Testing 
+
+def chunkifyData (text,chunks_list,text_length,chunk_length):
+	for i in range(0,text_length,chunk_length):
+		chunks_list.append(text[i:i+chunk_length])
+	return chunks_list
+
+def getChunkifiedData(pos_data, neg_data):
+	'''Performs cross validatioon  and returns Chunkified Data'''
+	pos_chunks = []
+	neg_chunks = []
+	
+	pos_sizerange = 1521/4
+	neg_sizerange = 13379/4
+
+	pos_step = pos_sizerange%1521
+	neg_step = neg_sizerange%13379
+
+	pos_data = tag_sentence(pos_data,"pos")
+	neg_data = tag_sentence(neg_data,"neg")
+
+	chunkifyData(pos_data, pos_chunks, 1521, pos_step)
+	chunkifyData(neg_data, neg_chunks, 13379, neg_step)
+
+	shuffle(pos_chunks)
+	shuffle(neg_chunks)
+
+	#after every shuffle the first index has a different piece of the text, so we test on the other 4 indeces
+	chunk_TrainingSet.extend(pos_chunks[0] + neg_chunks[0] )
+	chunk_TestingSet.extend(pos_chunks[0]  + neg_chunks[0] + pos_chunks[1] + neg_chunks[1] + pos_chunks[2] + neg_chunks[2] + pos_chunks[3] + neg_chunks[3] + pos_chunks[4] + neg_chunks[4])
+
+	return (chunk_TrainingSet, chunk_TestingSet)
 
 # load data
 pos_training = load("pos_data_training.dump")
