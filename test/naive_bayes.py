@@ -1,4 +1,8 @@
-''' Trains an nltk naive bayes classifier on data '''
+''' Trains an nltk naive bayes classifier on data which has been processed by process_data.py. Pickles the trained classifier and saves it for future use.'''
+__author__ = "Amna Aftab"
+__email__ = "aftab23a@mtholyoke.edu"
+
+
 import pickle  
 import nltk 
 import string 
