@@ -1,13 +1,13 @@
 
 Libraries used which may require a download: 
-- sklearn
-- nltk 
-- numpy
-- pickle 
-- random 
-- string (may not require a download)
-- os
-- sys 
+- sklearn (http://scikit-learn.org/stable/install.html)
+- nltk (http://www.nltk.org/install.html)
+- numpy (http://docs.scipy.org/doc/numpy-1.10.1/user/install.html)
+- pickle (should not require an install) 
+- random (should not require an install) 
+- string (should not require an install)
+- os (should not require an install)
+- sys (should not require an install)
 
 
 Imports: 
