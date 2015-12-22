@@ -9,13 +9,8 @@ import numpy as np
 import treetaggerwrapper
 
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn import tree
-#from sklearn.tree import DecisionTreeClassifier
-#from sklearn.metrics import precision_recall_curve
-#from sklearn.metrics import average_precision_score
-#from sklearn.preprocessing import label_binarize
 from sklearn import metrics
 from sklearn.svm import SVC
 from sklearn import svm, datasets
