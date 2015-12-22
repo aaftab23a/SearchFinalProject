@@ -37,6 +37,7 @@ training_data = []
 testing_data  = [] 
 
 def read_file(path) : 
+	''' Reads file from a path, performs basic pre-processing (tokenization, punctuation removal) '''  
 	f = open(path, 'r')
 	text = f.read()
 	f.close()
@@ -56,8 +57,8 @@ def load(filename):
 		data = pickle.load(fp)
 	return data
 
-# tokenize the text
 def process_text(txt) :
+	''' Tokenize text '''
 	text =[]
 	for t in txt:
 		text.append(word_tokenize(t))
@@ -83,6 +84,7 @@ def convert_to_unicode(txt):
 	return u_txt
 
 def tag_text (txt) :
+	''' Tag text ''' 
 	tags = []
 	for t in txt:
 		tags.append(tagger.tag_text(t))
@@ -93,7 +95,7 @@ pos_unicode_text = convert_to_unicode(pos_data)
 neg_unicode_text = convert_to_unicode(neg_data)
 
 def extract_tags (tags) :
-	"""From the POS tagging output, we only want the sequence of tags"""
+	"""From the POS tagging output, return the sequence of tags"""
 	extracted = []
 	for string in tags :
 		st = ""
@@ -110,7 +112,7 @@ neg_tags = tag_text(neg_unicode_text)
 final_pos_data = extract_tags(pos_tags)
 final_neg_data = extract_tags(neg_tags)
 
-# we are using the same ratioof positive to negative training data
+# we are using the same ratio of positive to negative training data
 training_data = final_pos_data[:1515]+final_neg_data[:1515]
 testing_data  = final_pos_data[1516:2020]+final_neg_data[1516:2020]
 
@@ -141,8 +143,8 @@ print np.mean(pos_predicted == testing_target)
 print (metrics.classification_report(testing_target, pos_predicted))
 print metrics.confusion_matrix(testing_target, pos_predicted)
 
-# save the classifier output toa pickle file
 def save_classifier_output ( data, file_name):
+	''' pickle the classifier''' 
 	ofile = open(file_name, 'w+')
 	output = []
 	for i in data : 
