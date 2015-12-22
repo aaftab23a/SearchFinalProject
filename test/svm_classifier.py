@@ -6,25 +6,29 @@ import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
 import numpy as np
-import sys
+import os, sys
 from sklearn import metrics
 
 reload(sys) 
 sys.setdefaultencoding('ISO-8859-1')
 
+
+# set working directories
+MY_DIR = os.path.realpath(os.path.dirname(__file__))
+PICKLE_DIR = os.path.join(MY_DIR, 'PickledData')
+
 # saves data to a pickle file 
 def save(data, filename):
 	""" Saves data in a pickle file """
-	ofile = open(filename, "w+")
-	pickle.dumps(data, ofile)
-	ofile.close()
+	fname = os.path.join(PICKLE_DIR, filename)
+	with open(fname, 'wb') as f:
+		pickle.dump(data, f)
 
-# helper fuction: loads data from a pickle file
 def load(filename):
 	""" Loads and returns data from pickle file """
-	ifile = open(filename, 'r+')
-	data = pickle.load(ifile)
-	ifile.close()
+	fname = os.path.join(PICKLE_DIR, filename)
+	with open(fname, 'r+') as fp:
+		data = pickle.load(fp)
 	return data
 
 def get_classifier(): 
@@ -40,16 +44,15 @@ def train(classifier, training_data, target):
 	""" Return classifier trained on training data and target """ 
 	classifier.fit(training_data, target)
 	return classifier
-# assume that the pos and neg arrays never change positions after this 
-# cuz then you'd be fucked. 
-# use a dictionary? 
+
 def get_target(pos_data, neg_data):
 	""" Returns the target vector: positive prompts are marked as 0, negative prompts are marked as 1 """ 
 	pos_target = [0]*len(pos_data)
 	neg_target = [1]*len(neg_data)
-	return pos_target+neg_target
+	return pos_target + neg_target
 
 def print_metrics(trained_classifier, testing_data):
+	''' Prints out stats about the classifier's performance including accuracy, precision and recall. '''
 	predicted = trained_classifier.predict(testing_data)
 	print np.mean(predicted == testing_target)
 	print (metrics.classification_report(testing_target, predicted))
@@ -73,10 +76,5 @@ training_target = get_target(pos_training, neg_training)
 classifier = get_classifier() 
 trained_classifier =  train(classifier, training_data, training_target)
 
-# pickling error
-#save(trained_classifier, "svm_classifier.pk")
-
-#predicted = trained_classifier.predict(testing_data)
 print_metrics(trained_classifier, testing_data)
-#print np.mean(predicted == testing_target)
 

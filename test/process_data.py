@@ -1,13 +1,7 @@
-############## Process Data ################
-# Reads, processes and saves data as positive training, negative training 
-# and positive testing and negative testing 
-# pos_data_training 
-# pos_data_testing 
-# neg_data_training 
-# neg_data_testing 
+''' Reads, processes and saves data as positive training data, negative training data, positive testing data and negative testing data. 
+	This is saved in pos_data_training.dump, pos_data_testing.dump, neg_data_training.dump, neg_data_testing.dump.'''
 
-
-import sys 
+import os, sys 
 import string 
 from random import shuffle
 import pickle  
@@ -22,8 +16,15 @@ negativeData2 = '../data/fml.txt'
 negativeData3 = '../data/tflnonesent.txt'
 
 
-# reads file from path
-# returns a string of text
+# for cross-validation
+chunk_TrainingSet = []
+chunk_TestingSet  = []
+
+# set working directories
+MY_DIR = os.path.realpath(os.path.dirname(__file__))
+PICKLE_DIR = os.path.join(MY_DIR, 'PickledData')
+
+
 def readFile(path): 
 	""" Reads a file at the given path. Returns a string containing text in that file. """ 
 	f = open(path, 'r')
@@ -34,16 +35,22 @@ def readFile(path):
 # saves data to a pickle file 
 def save(data, filename):
 	""" Saves data in a pickle file """
-	ofile = open(filename, "w+")
-	pickle.dump(data, ofile)
-	ofile.close()
+	fname = os.path.join(PICKLE_DIR, filename)
+	with open(fname, 'wb') as f:
+		pickle.dump(data, f)
+	#ofile = open(filename, "w+")
+	#pickle.dump(data, ofile)
+	#ofile.close()
 
 # helper fuction: loads data from a pickle file
 def load(filename):
 	""" Saves data in a pickle file """
-	ifile = open(filename, 'r+')
-	data = pickle.load(ifile)
-	ifile.close()
+	fname = os.path.join(PICKLE_DIR, filename)
+	with open(fname, 'r+') as fp:
+		data = pickle.load(fp)
+#	ifile = open(filename, 'r+')#
+#	data = pickle.load(ifile)
+#	ifile.close()
 	return data
 
 # removes stopwords, stems, removes punctuation
