@@ -1,5 +1,9 @@
 ''' Reads, processes and saves data as positive training data, negative training data, positive testing data and negative testing data. 
 	This is saved in pos_data_training.dump, pos_data_testing.dump, neg_data_training.dump, neg_data_testing.dump.'''
+	
+__author__ = "Amna Aftab"
+__email__ = "aftab23a@mtholyoke.edu"
+
 
 import os, sys 
 import string 
@@ -38,9 +42,6 @@ def save(data, filename):
 	fname = os.path.join(PICKLE_DIR, filename)
 	with open(fname, 'wb') as f:
 		pickle.dump(data, f)
-	#ofile = open(filename, "w+")
-	#pickle.dump(data, ofile)
-	#ofile.close()
 
 # helper fuction: loads data from a pickle file
 def load(filename):
@@ -48,9 +49,6 @@ def load(filename):
 	fname = os.path.join(PICKLE_DIR, filename)
 	with open(fname, 'r+') as fp:
 		data = pickle.load(fp)
-#	ifile = open(filename, 'r+')#
-#	data = pickle.load(ifile)
-#	ifile.close()
 	return data
 
 # removes stopwords, stems, removes punctuation
