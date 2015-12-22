@@ -26,3 +26,9 @@ Here is a link to the data that we used, stored in google drive: https://drive.g
 - string (should not require an install)
 - os (should not require an install)
 - sys (should not require an install)
+
+
+# A note on the installation of the treetagger library:
+  If you have trouble installing the library, just install 1 and use the source code folder at   https://github.com/NashwaEl/TreeTaggerInstall to install it: (add the folder to your working directory and run python treetaggerwrapper.py )
+	1- http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/ (Treetagger library)
+	2- http://treetaggerwrapper.readthedocs.org/en/latest/  (Treetagger library python wrapper)
