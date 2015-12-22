@@ -1,4 +1,6 @@
-""" Trains and tests SVM Classifier on TWSS Data """
+""" Trains and tests the SVM Classifier on TWSS Data. Prints output in the console regarding the performance of the classifier (eg. precision, accuracy and recall) """
+__author__ = "Amna Aftab"
+__email__ = "aftab23a@mtholyoke.edu"
 
 from sklearn.svm import SVC
 from sklearn.naive_bayes import MultinomialNB
