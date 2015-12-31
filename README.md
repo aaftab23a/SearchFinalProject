@@ -1,8 +1,17 @@
-# SearchFinalProject
+# Computational Humor Detection
 
-To run any file, simply navigate to the directory and run the command 'python filename.py'. A function within the file can be called by editing the contents of the file. 
+## Goal 
+This is an investigation into the effectiveness of text classification techniques in the art of detecting humor. 
+
+## Background
+Humor is a compelling and unique aspect of human behavior. While it has been studied extensively in linguistics and psychology, there has been very little work done in the field of computational humor - most of that work is on humor generation, not humor recognition, which is a subtle art. As part of our project, we wanted to find evidence that computational approaches can be successfully applied to the task of humor recognition. Since a deep understanding of humor in all of its aspects is an ambitious goal, we chose to restrict our investigation to the type of humor found in one-liners: specifically, that’s what she said jokes. Our experiment with data scraped from the web demonstrates that precision in the prediction job can be drastically improved with tailored text classification techniques.
+
+## Techniques Used
+We experimented with various types of classification methods, specifically the Naive Bayes classifiers, SVMs, Decision Trees and Random Forests. Our final model is a result of 'stacking' three of our most effective classifiers together (SVM trained on unigrams + SVM trained on parts of speech tags + Random Forest trained on unigrams). 
+ 
 
 ## How to run:  
+To run any file, simply navigate to the directory and run the command 'python filename.py'. A function within the file can be called by editing the contents of the file. 
 
 1. process_data.py: which reads data from the data folder, processes it and pickles it for later use. During processing, it portions the data into positive and negative, training and testing. These portions are picked and stored in the PickledData directory. 
 
